@@ -2,10 +2,6 @@
 
 [Open the live demo](https://blockchain-dev.onrender.com/) · [View the GitHub repository](https://github.com/kabirbasu2103-ctrl/blockchain-dev)
 
-This project is a small Python blockchain built to explore the mechanics behind blocks, proof of work, signed transactions, and chain validation. It includes a browser dashboard so the main ideas can be demonstrated without installing anything.
-
-The project is a toy model of blockchain mechanics.
-
 ## Try the live demo
 
 Open the [deployed website](https://blockchain-dev.onrender.com/) and use the dashboard to inspect the wallet, submit a transaction, mine a block, and review the chain. The page also includes demonstrations for overspending, changing a signed transaction, and tampering with a mined block.
