@@ -3,9 +3,10 @@ import time
 
 from wallet import public_key_to_address, verify_signature
 
+# Rewards for mining are awarded by a sender called "NETWORK" - prevents miners from creating their own rewards
 REWARD_SENDER = "NETWORK"
 
-
+# Transaction class is strictly defined with sender, recipient, amount, timestamp, public-private key pair and timestamp)
 class Transaction:
     def __init__(self, sender, recipient, amount, timestamp=None, sender_public_key=None, signature=None):
         self.sender = sender
@@ -15,6 +16,7 @@ class Transaction:
         self.sender_public_key = sender_public_key
         self.signature = signature
 
+# Signing message method converts transaction attributes into JSON compatible dictionary to transmit data between nodes
     def signing_message(self):
         contents = {
             "sender": self.sender,
@@ -25,12 +27,14 @@ class Transaction:
         }
         return json.dumps(contents, sort_keys=True)
 
+# Sign function allows nodes to sign transactions with their wallet's private key
     def sign(self, wallet):
         if wallet.address != self.sender:
             raise ValueError("You can only sign transactions sent from your own wallet")
         self.sender_public_key = wallet.public_key_hex
         self.signature = wallet.sign(self.signing_message())
 
+# Transaction validation checks for +ve integer amounts, skips over reward transactions, prevents wallets from adding transactions without their own public keys/signatures
     def is_valid(self):
         if not isinstance(self.amount, int) or self.amount <= 0:
             return False
@@ -46,6 +50,7 @@ class Transaction:
 
         return verify_signature(self.sender_public_key, self.signing_message(), self.signature)
 
+# Converts transaction object attributes into a dictionary for compatibility with JSON serialization to transmit data between nodes
     def to_dict(self):
         return {
             "sender": self.sender,
@@ -56,6 +61,7 @@ class Transaction:
             "signature": self.signature,
         }
 
+# Lets nodes recreate transactions from dictionaries to verify transactions received and update balances
     @classmethod
     def from_dict(cls, data):
         return cls(**data)

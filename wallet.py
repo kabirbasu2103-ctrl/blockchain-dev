@@ -3,12 +3,12 @@ import hashlib
 from ecdsa import SECP256k1, BadSignatureError, SigningKey, VerifyingKey
 from ecdsa.errors import MalformedPointError
 
-
+# Converts public key into bytes for compatibility with SHA-256 hashing and returns the first 40 characters of the hash as the wallet address
 def public_key_to_address(public_key_hex):
     public_key_bytes = bytes.fromhex(public_key_hex)
     return hashlib.sha256(public_key_bytes).hexdigest()[:40]
 
-
+# Verifies the signature for a message (transaction) sent by a wallet using sender's public key
 def verify_signature(public_key_hex, message, signature_hex):
     try:
         verifying_key = VerifyingKey.from_string(bytes.fromhex(public_key_hex), curve=SECP256k1)
@@ -18,7 +18,7 @@ def verify_signature(public_key_hex, message, signature_hex):
     except (BadSignatureError, MalformedPointError, ValueError):
         return False
 
-
+# Defines wallet class with private key, public key, signing and export functions
 class Wallet:
     def __init__(self, private_key_hex=None):
         if private_key_hex:
