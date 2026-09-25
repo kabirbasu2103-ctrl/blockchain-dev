@@ -1,8 +1,10 @@
 import argparse
+import copy
+import os
 import threading
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 
 from block import Block
 from chain import Blockchain
@@ -14,6 +16,11 @@ blockchain = Blockchain(difficulty=4)
 wallet = Wallet()
 peers = set()
 lock = threading.Lock()
+
+
+@app.get("/")
+def home():
+    return render_template("index.html")
 
 # Converts dictionary to JSON for HTTP compatibility and broadcasts to all peers, times out unresponsive peers
 def broadcast(path, payload):
@@ -115,6 +122,107 @@ def get_chain():
             "chain": [block.to_dict() for block in blockchain.chain],
         })
 
+
+@app.post("/demo/tamper/<int:block_index>")
+def simulate_tampering(block_index):
+    with lock:
+        test_chain = copy.deepcopy(blockchain.chain)
+        difficulty = blockchain.difficulty
+
+    if block_index <= 0 or block_index >= len(test_chain):
+        return jsonify({"error": "Choose a mined block after the genesis block."}), 400
+
+    test_chain[block_index].timestamp += 1
+    target = "0" * difficulty
+    statuses = []
+    valid_prefix = True
+
+    for index, block in enumerate(test_chain):
+        hash_matches = block.hash == block.calculate_hash()
+        link_matches = index == 0 or block.previous_hash == test_chain[index - 1].hash
+        proof_of_work_matches = block.hash.startswith(target)
+        valid = valid_prefix and hash_matches and link_matches and proof_of_work_matches
+
+        statuses.append({
+            "index": block.index,
+            "valid": valid,
+            "hash_matches": hash_matches,
+            "link_matches": link_matches,
+            "proof_of_work_matches": proof_of_work_matches,
+        })
+        valid_prefix = valid
+
+    return jsonify({
+        "tampered_block": block_index,
+        "simulation_only": True,
+        "live_chain_changed": False,
+        "blocks": statuses,
+    })
+
+
+@app.post("/demo/overspend")
+def simulate_overspending():
+    with lock:
+        test_blockchain = copy.deepcopy(blockchain)
+        address = wallet.address
+        confirmed_balance = test_blockchain.get_balance(address)
+        pending_outgoing = test_blockchain.get_pending_spending(address)
+        available_balance = confirmed_balance - pending_outgoing
+        attempted_amount = max(1, available_balance + 1)
+
+        transaction = Transaction(address, "0" * 40, attempted_amount)
+        transaction.sign(wallet)
+
+        try:
+            test_blockchain.add_transaction(transaction)
+        except ValueError as error:
+            result = "REJECTED"
+            reason = str(error)
+        else:
+            result = "ACCEPTED"
+            reason = "The copied node state accepted an overspending transaction."
+
+    return jsonify({
+        "test": "overspend",
+        "result": result,
+        "confirmed_balance": confirmed_balance,
+        "pending_outgoing": pending_outgoing,
+        "available_balance": available_balance,
+        "attempted_amount": attempted_amount,
+        "reason": reason,
+        "live_state_changed": False,
+    })
+
+
+@app.post("/demo/tamper-signature")
+def simulate_signature_tampering():
+    with lock:
+        test_blockchain = copy.deepcopy(blockchain)
+        address = wallet.address
+        signed_amount = 1
+        transaction = Transaction(address, "1" * 40, signed_amount)
+        transaction.sign(wallet)
+        transaction.amount += 1
+        attempted_amount = transaction.amount
+
+        try:
+            test_blockchain.add_transaction(transaction)
+        except ValueError as error:
+            result = "REJECTED"
+            reason = str(error)
+        else:
+            result = "ACCEPTED"
+            reason = "The copied node state accepted a transaction with a changed amount."
+
+    return jsonify({
+        "test": "signature_tampering",
+        "result": result,
+        "signed_amount": signed_amount,
+        "attempted_amount": attempted_amount,
+        "reason": reason,
+        "live_state_changed": False,
+    })
+
 # Manually trigger consensus with peers
 @app.post("/resolve")
 def resolve():
@@ -150,7 +258,8 @@ def list_peers():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=5001)
+    parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "5001")))
     parser.add_argument("--peers", nargs="*", default=[])
     args = parser.parse_args()
 
@@ -165,6 +274,6 @@ if __name__ == "__main__":
 
     resolve_conflicts()
 
-    print(f"Node running at {my_url}")
+    print(f"Node listening at http://{args.host}:{args.port}")
     print(f"Wallet address: {wallet.address}")
-    app.run(port=args.port)
+    app.run(host=args.host, port=args.port, debug=False)
