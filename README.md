@@ -6,20 +6,20 @@ Networking across multiple devices is not yet supported (can add that later, may
 
 Run node.py to launch node at port 5001
 
-Run in new terminal. For each <NUM>, use 5001...5099 for Mac
+Run in new terminal. For each NUM, use 5001...5099 for Mac
 
-CREATE NODE: python3 node.py --port <NUM> --peers http://localhost:<NUM>
+CREATE NODE: python3 node.py --port NUM --peers http://localhost:NUM
 
-MINE BLOCK: curl -X POST http://localhost:<NUM>/mine
+MINE BLOCK: curl -X POST http://localhost:NUM/mine
 
-ADD TRANSACTION: curl -X POST http://localhost:<NUM>/send -H "Content-Type: application/json" -d '{"recipient": "ADDRESS", "amount": <NUM>}'
+ADD TRANSACTION: curl -X POST http://localhost:NUM/send -H "Content-Type: application/json" -d '{"recipient": "ADDRESS", "amount": <NUM>}'
 
-VIEW BALANCE: curl http://localhost:<NUM>/wallet
+VIEW BALANCE: curl http://localhost:NUM/wallet
 
-VIEW CHAIN: curl http://localhost:<NUM>/chain
+VIEW CHAIN: curl http://localhost:NUM/chain
 
-MANUALLY RESOLVE CONFLICT: curl http://localhost:<NUM>/resolve
+MANUALLY RESOLVE CONFLICT: curl http://localhost:NUM/resolve
 
-VIEW PEERS: curl http://localhost:<NUM>/peers
+VIEW PEERS: curl http://localhost:NUM/peers
 
-REGISTER PEERS: curl http://localhost:<NUM>/peers/register/<peeraddress>
+REGISTER PEERS: curl http://localhost:NUM/peers/register/<peeraddress>
