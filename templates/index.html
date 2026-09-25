@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blockchain Integrity Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #17212b;
+      background: #f3f6f8;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 18px;
+    }
+
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .intro, .note {
+      color: #526170;
+      line-height: 1.55;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0;
+    }
+
+    button, .link-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 650;
+      color: white;
+      background: #1769aa;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    button:hover, .link-button:hover {
+      background: #0d548d;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .panel {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #d6dee5;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .section-heading, .block-heading, .pending-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-heading {
+      margin-bottom: 16px;
+    }
+
+    .wallet-address {
+      margin: 0 0 16px;
+    }
+
+    .wallet-address code, .address-value {
+      overflow-wrap: anywhere;
+      color: #26394a;
+    }
+
+    .balance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0 22px;
+    }
+
+    .balance-card {
+      padding: 14px;
+      border: 1px solid #e0e7ed;
+      border-radius: 9px;
+      background: #f8fafb;
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 6px;
+      color: #526170;
+      font-size: 0.85rem;
+    }
+
+    .balance-card strong {
+      font-size: 1.25rem;
+    }
+
+    .coin-unit {
+      margin-left: 5px;
+      color: #526170;
+      font-size: 0.9rem;
+    }
+
+    .transaction-form {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(120px, 1fr) auto;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .field input {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 11px;
+      border: 1px solid #bdc9d3;
+      border-radius: 7px;
+      font: inherit;
+    }
+
+    .form-help {
+      margin: 7px 0 0;
+      color: #63717e;
+      font-size: 0.82rem;
+    }
+
+    .validation-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .validation-button.secondary {
+      background: #555f6b;
+    }
+
+    .validation-button.secondary:hover {
+      background: #3e4751;
+    }
+
+    .validation-card {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid #d6dee5;
+      border-left: 6px solid #8293a2;
+      border-radius: 9px;
+      background: #fbfcfd;
+    }
+
+    .validation-card.pass {
+      border-left-color: #218838;
+      background: #f7fcf8;
+    }
+
+    .validation-card.fail {
+      border-left-color: #c62828;
+      background: #fff8f7;
+    }
+
+    .validation-card p {
+      margin: 8px 0 0;
+      line-height: 1.5;
+    }
+
+    #chain-status, #transaction-status {
+      min-height: 24px;
+      font-weight: 650;
+    }
+
+    #transaction-status {
+      margin-bottom: 0;
+    }
+
+    .badge {
+      padding: 4px 9px;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      font-weight: 750;
+      background: #e8edf1;
+      color: #45525e;
+      white-space: nowrap;
+    }
+
+    .badge.valid {
+      color: #176b2c;
+      background: #e5f4e9;
+    }
+
+    .badge.invalid {
+      color: #9f1d1d;
+      background: #fde7e5;
+    }
+
+    .pending-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .pending-card {
+      padding: 14px;
+      border: 1px solid #dce4ea;
+      border-radius: 9px;
+      background: #fbfcfd;
+    }
+
+    .pending-heading {
+      margin-bottom: 10px;
+    }
+
+    .amount-chip {
+      color: #176b2c;
+      font-weight: 750;
+    }
+
+    .pending-addresses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 18px;
+    }
+
+    .pending-addresses p {
+      margin: 0;
+      color: #526170;
+      font-size: 0.82rem;
+    }
+
+    .address-value {
+      display: block;
+      margin-top: 3px;
+      font-size: 0.82rem;
+    }
+
+    .empty-state {
+      margin: 0;
+      padding: 16px;
+      border-radius: 8px;
+      color: #526170;
+      background: #f3f6f8;
+    }
+
+    .block-card {
+      margin: 14px 0;
+      padding: 18px;
+      border: 1px solid #d6dee5;
+      border-left: 6px solid #8293a2;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .block-card.valid {
+      border-left-color: #218838;
+    }
+
+    .block-card.invalid {
+      border-left-color: #c62828;
+      background: #fff8f7;
+    }
+
+    .block-heading h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .hash-label {
+      margin: 14px 0 4px;
+      color: #526170;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 6px 0 14px;
+      padding: 12px;
+      border-radius: 7px;
+      background: #f3f6f8;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .tamper-button {
+      background: #a34d00;
+    }
+
+    .tamper-button:hover {
+      background: #7d3b00;
+    }
+
+    @media (max-width: 700px) {
+      .balance-grid, .transaction-form, .pending-addresses {
+        grid-template-columns: 1fr;
+      }
+
+      .transaction-form button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Blockchain Integrity Lab</h1>
+    <p class="intro">Send signed transactions, inspect the local mempool, mine blocks, and explore how transaction and block checks work.</p>
+
+    <div class="toolbar">
+      <button id="refresh-button" type="button">Refresh dashboard</button>
+      <button id="mine-button" type="button">Mine a block</button>
+      <a class="link-button" href="/wallet" target="_blank" rel="noreferrer">Open wallet data</a>
+    </div>
+
+    <p id="chain-status" role="status">Loading node...</p>
+
+    <section class="panel" aria-labelledby="send-heading">
+      <div class="section-heading">
+        <h2 id="send-heading">Send a transaction</h2>
+        <span class="badge">Local wallet</span>
+      </div>
+
+      <p class="wallet-address"><span class="stat-label">This node's wallet address</span><code id="wallet-address">Loading...</code></p>
+
+      <div class="balance-grid">
+        <div class="balance-card">
+          <span class="stat-label">Confirmed balance</span>
+          <strong id="confirmed-balance">--</strong><span class="coin-unit">coins</span>
+        </div>
+        <div class="balance-card">
+          <span class="stat-label">Pending outgoing</span>
+          <strong id="pending-outgoing">--</strong><span class="coin-unit">coins</span>
+        </div>
+        <div class="balance-card">
+          <span class="stat-label">Available to send</span>
+          <strong id="available-balance">--</strong><span class="coin-unit">coins</span>
+        </div>
+      </div>
+
+      <form id="transaction-form" class="transaction-form">
+        <div class="field">
+          <label for="recipient">Recipient address</label>
+          <input id="recipient" name="recipient" type="text" inputmode="text" autocomplete="off" maxlength="40" pattern="[a-fA-F0-9]{40}" title="Enter exactly 40 hexadecimal characters." required>
+          <p class="form-help">Use the 40-character address shown on another node's wallet page.</p>
+        </div>
+        <div class="field">
+          <label for="amount">Amount</label>
+          <input id="amount" name="amount" type="number" min="1" step="1" required>
+          <p class="form-help">Whole coins only.</p>
+        </div>
+        <button id="send-button" type="submit">Sign and send</button>
+      </form>
+      <p class="note">The node signs the transaction with its local wallet. It stays pending until a block is mined.</p>
+      <p id="transaction-status" role="status"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="validation-heading">
+      <div class="section-heading">
+        <h2 id="validation-heading">Transaction validation lab</h2>
+        <span class="badge">COPY ONLY</span>
+      </div>
+      <p class="note">Each check tries a crafted transaction against a copy of the node's state. It does not change the live chain or pending transaction pool.</p>
+      <div class="validation-actions">
+        <button id="overspend-button" class="validation-button" type="button">Try to overspend</button>
+        <button id="signature-test-button" class="validation-button secondary" type="button">Tamper with a signed transaction</button>
+      </div>
+      <p id="validation-status" role="status">Choose a check to see how the node validates a transaction.</p>
+      <div id="validation-results" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="pending-heading">
+      <div class="section-heading">
+        <h2 id="pending-heading">Pending transactions</h2>
+        <span id="pending-count" class="badge">0</span>
+      </div>
+      <p class="note">This list shows transactions in this node's memory pool. Connected nodes should receive the same transaction.</p>
+      <div id="pending-container" class="pending-list" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="chain-heading">
+      <div class="section-heading">
+        <h2 id="chain-heading">Blockchain</h2>
+        <span class="badge">LOCAL CHAIN</span>
+      </div>
+      <p class="note">Tampering is simulated on a copy of the chain. The node's stored chain is not changed.</p>
+      <div id="blocks" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const blocksContainer = document.getElementById("blocks");
+    const statusLine = document.getElementById("chain-status");
+    const transactionStatus = document.getElementById("transaction-status");
+    const pendingContainer = document.getElementById("pending-container");
+    const pendingCount = document.getElementById("pending-count");
+    const validationStatus = document.getElementById("validation-status");
+    const validationResults = document.getElementById("validation-results");
+    let currentChain = [];
+    let tamperReport = null;
+    let walletState = { address: "", balance: 0 };
+    let pendingTransactions = [];
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const body = await response.json();
+      if (!response.ok) {
+        throw new Error(body.error || `Request failed with status ${response.status}`);
+      }
+      return body;
+    }
+
+    function renderWallet() {
+      document.getElementById("wallet-address").textContent = walletState.address || "Unavailable";
+      document.getElementById("confirmed-balance").textContent = String(walletState.balance);
+
+      const outgoing = pendingTransactions.reduce((total, transaction) => {
+        return transaction.sender === walletState.address ? total + transaction.amount : total;
+      }, 0);
+      document.getElementById("pending-outgoing").textContent = String(outgoing);
+      document.getElementById("available-balance").textContent = String(Math.max(0, walletState.balance - outgoing));
+    }
+
+    function makeAddress(label, value) {
+      const wrapper = document.createElement("p");
+      wrapper.append(document.createTextNode(`${label}: `));
+      const address = document.createElement("code");
+      address.className = "address-value";
+      address.textContent = value;
+      wrapper.append(address);
+      return wrapper;
+    }
+
+    function renderPendingTransactions() {
+      pendingContainer.replaceChildren();
+      pendingCount.textContent = String(pendingTransactions.length);
+
+      if (pendingTransactions.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = "No pending transactions. Send a transaction or connect to a node with pending activity.";
+        pendingContainer.append(empty);
+        renderWallet();
+        return;
+      }
+
+      pendingTransactions.forEach(transaction => {
+        const card = document.createElement("article");
+        card.className = "pending-card";
+
+        const heading = document.createElement("div");
+        heading.className = "pending-heading";
+        const title = document.createElement("strong");
+        title.textContent = "Signed transfer";
+        const amount = document.createElement("span");
+        amount.className = "amount-chip";
+        amount.textContent = `${transaction.amount} coins`;
+        heading.append(title, amount);
+
+        const addresses = document.createElement("div");
+        addresses.className = "pending-addresses";
+        addresses.append(
+          makeAddress("From", transaction.sender),
+          makeAddress("To", transaction.recipient)
+        );
+
+        card.append(heading, addresses);
+        pendingContainer.append(card);
+      });
+
+      renderWallet();
+    }
+
+    function renderChain() {
+      blocksContainer.replaceChildren();
+      const statuses = new Map((tamperReport?.blocks || []).map(item => [item.index, item]));
+
+      currentChain.forEach((block, position) => {
+        const result = statuses.get(block.index);
+        const card = document.createElement("article");
+        card.className = `block-card${result ? (result.valid ? " valid" : " invalid") : ""}`;
+
+        const heading = document.createElement("div");
+        heading.className = "block-heading";
+
+        const title = document.createElement("h3");
+        title.textContent = `Block ${block.index}`;
+
+        const badge = document.createElement("span");
+        badge.className = `badge${result ? (result.valid ? " valid" : " invalid") : ""}`;
+        badge.textContent = result ? (result.valid ? "VALID" : "INVALID") : "NOT TESTED";
+
+        heading.append(title, badge);
+        card.append(heading);
+
+        const hashLabel = document.createElement("p");
+        hashLabel.className = "hash-label";
+        hashLabel.textContent = "Block hash";
+        const hashValue = document.createElement("pre");
+        hashValue.textContent = block.hash;
+
+        const previousLabel = document.createElement("p");
+        previousLabel.className = "hash-label";
+        previousLabel.textContent = "Previous block hash";
+        const previousValue = document.createElement("pre");
+        previousValue.textContent = block.previous_hash;
+
+        const transactionLabel = document.createElement("p");
+        transactionLabel.className = "hash-label";
+        transactionLabel.textContent = "Block data";
+        const transactionValue = document.createElement("pre");
+        transactionValue.textContent = JSON.stringify(block.data, null, 2);
+
+        card.append(hashLabel, hashValue, previousLabel, previousValue, transactionLabel, transactionValue);
+
+        const tamperButton = document.createElement("button");
+        tamperButton.type = "button";
+        tamperButton.className = "tamper-button";
+        tamperButton.textContent = "Simulate tampering with this block";
+        tamperButton.disabled = position === 0;
+        tamperButton.addEventListener("click", () => simulateTampering(block.index));
+        card.append(tamperButton);
+
+        blocksContainer.append(card);
+      });
+    }
+
+    async function refreshDashboard() {
+      try {
+        const [chainResult, walletResult, pendingResult] = await Promise.all([
+          requestJson("/chain"),
+          requestJson("/wallet"),
+          requestJson("/transactions/pending")
+        ]);
+        currentChain = chainResult.chain;
+        walletState = walletResult;
+        pendingTransactions = pendingResult;
+        tamperReport = null;
+        statusLine.textContent = `Loaded ${chainResult.length} blocks. The genesis block cannot be edited in the tampering simulation.`;
+        renderChain();
+        renderPendingTransactions();
+      } catch (error) {
+        statusLine.textContent = error.message;
+      }
+    }
+
+    async function mineBlock() {
+      const mineButton = document.getElementById("mine-button");
+      mineButton.disabled = true;
+      try {
+        const result = await requestJson("/mine", { method: "POST" });
+        await refreshDashboard();
+        statusLine.textContent = `${result.message}. Chain now has ${currentChain.length} blocks.`;
+        const includedTransactions = Math.max(0, result.block.data.length - 1);
+        transactionStatus.textContent = includedTransactions > 0
+          ? `${includedTransactions} pending transaction(s) were included in the mined block.`
+          : "No pending transactions were included in this block.";
+      } catch (error) {
+        statusLine.textContent = error.message;
+      } finally {
+        mineButton.disabled = false;
+      }
+    }
+
+    async function submitTransaction(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const sendButton = document.getElementById("send-button");
+      const formData = new FormData(form);
+      const recipient = String(formData.get("recipient")).trim();
+      const amount = Number(formData.get("amount"));
+
+      if (!Number.isSafeInteger(amount) || amount <= 0) {
+        transactionStatus.textContent = "Enter a positive whole number of coins.";
+        return;
+      }
+
+      sendButton.disabled = true;
+      transactionStatus.textContent = "Signing and submitting transaction...";
+      try {
+        const result = await requestJson("/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipient, amount })
+        });
+        form.reset();
+        await refreshDashboard();
+        transactionStatus.textContent = result.message || "Transaction added to the mempool.";
+      } catch (error) {
+        transactionStatus.textContent = error.message;
+      } finally {
+        sendButton.disabled = false;
+      }
+    }
+
+    function renderValidationResult(testName, report) {
+      validationResults.replaceChildren();
+      const passed = report.result === "REJECTED" && report.live_state_changed === false;
+      const card = document.createElement("article");
+      card.className = `validation-card ${passed ? "pass" : "fail"}`;
+
+      const heading = document.createElement("div");
+      heading.className = "pending-heading";
+      const title = document.createElement("strong");
+      title.textContent = testName;
+      const badge = document.createElement("span");
+      badge.className = `badge ${passed ? "valid" : "invalid"}`;
+      badge.textContent = passed ? "PASS" : "CHECK FAILED";
+      heading.append(title, badge);
+
+      const detail = document.createElement("p");
+      detail.textContent = report.test === "overspend"
+        ? `Available: ${report.available_balance} coins. Attempted: ${report.attempted_amount} coins.`
+        : `Signed amount: ${report.signed_amount} coin. Altered amount: ${report.attempted_amount} coins.`;
+
+      const reason = document.createElement("p");
+      reason.textContent = `Node response: ${report.reason}`;
+      const state = document.createElement("p");
+      state.textContent = `Live state changed: ${report.live_state_changed ? "Yes" : "No"}.`;
+      card.append(heading, detail, reason, state);
+      validationResults.append(card);
+    }
+
+    async function runValidation(testType) {
+      const overspendButton = document.getElementById("overspend-button");
+      const signatureButton = document.getElementById("signature-test-button");
+      overspendButton.disabled = true;
+      signatureButton.disabled = true;
+      validationResults.replaceChildren();
+      validationStatus.textContent = "Running a local validation check...";
+
+      const tests = {
+        overspend: { endpoint: "/demo/overspend", label: "Overspending check" },
+        signature: { endpoint: "/demo/tamper-signature", label: "Signature tampering check" }
+      };
+
+      try {
+        const test = tests[testType];
+        const report = await requestJson(test.endpoint, { method: "POST" });
+        const passed = report.result === "REJECTED" && report.live_state_changed === false;
+        renderValidationResult(test.label, report);
+        validationStatus.textContent = passed
+          ? "The node rejected the invalid transaction as expected."
+          : "The validation check did not produce the expected rejection.";
+      } catch (error) {
+        validationStatus.textContent = error.message;
+      } finally {
+        overspendButton.disabled = false;
+        signatureButton.disabled = false;
+      }
+    }
+
+    async function simulateTampering(blockIndex) {
+      try {
+        statusLine.textContent = "Simulating a data edit on a copy of the chain...";
+        tamperReport = await requestJson(`/demo/tamper/${blockIndex}`, { method: "POST" });
+        statusLine.textContent = `Simulation only: block ${blockIndex} and all later blocks are invalid. The live chain was not changed.`;
+        renderChain();
+      } catch (error) {
+        statusLine.textContent = error.message;
+      }
+    }
+
+    document.getElementById("refresh-button").addEventListener("click", refreshDashboard);
+    document.getElementById("mine-button").addEventListener("click", mineBlock);
+    document.getElementById("transaction-form").addEventListener("submit", submitTransaction);
+    document.getElementById("overspend-button").addEventListener("click", () => runValidation("overspend"));
+    document.getElementById("signature-test-button").addEventListener("click", () => runValidation("signature"));
+    refreshDashboard();
+  </script>
+</body>
+</html>
